@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Test Platform</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            margin-top: 20px;
+        }
+
+        .question-box {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #fff;
+        }
+
+        .timer {
+            font-size: 1.5rem;
+            color: #dc3545;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .question-tracker {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .question-tracker .btn {
+            width: 40px;
+            height: 40px;
+            margin: 5px;
+            border-radius: 50%;
+        }
+
+        .btn-answered {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .btn-skipped {
+            background-color: #ffc107;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Exam Title -->
+        <div class="text-center mb-4">
+            <h2>Mock Test: General Knowledge</h2>
+            <p class="timer">Time Remaining: <span id="timer">60:00</span></p>
+        </div>
+
+        <!-- Question Tracker -->
+        <div class="question-tracker">
+            <span>Question Tracker:</span>
+            <div id="tracker">
+                <!-- Dynamically filled by JS -->
+            </div>
+        </div>
+
+        <!-- Question Section -->
+        <form id="mockTestForm">
+            <div id="question-container">
+                <!-- Questions will be injected dynamically -->
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary" id="prevBtn" disabled>Previous</button>
+                <button type="button" class="btn btn-secondary" id="nextBtn">Next</button>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const questions = [
+            {
+                id: 1,
+                question: "What is the capital of France?",
+                options: ["Paris", "Rome", "London", "Berlin"]
+            },
+            {
+                id: 2,
+                question: "Who developed the theory of relativity?",
+                options: ["Albert Einstein", "Isaac Newton", "Galileo Galilei", "Marie Curie"]
+            },
+            {
+                id: 3,
+                question: "What is the smallest planet in our solar system?",
+                options: ["Mercury", "Venus", "Earth", "Mars"]
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        const tracker = document.getElementById('tracker');
+        const questionContainer = document.getElementById('question-container');
+
+        function updateTracker() {
+            tracker.innerHTML = '';
+            questions.forEach((q, index) => {
+                const status = document.querySelector(`input[name="question${q.id}"]:checked`)
+                    ? 'btn-answered'
+                    : 'btn-skipped';
+                tracker.innerHTML += `<button type="button" class="btn ${status}" onclick="goToQuestion(${index})">${q.id}</button>`;
+            });
+        }
+
+        function renderQuestion() {
+            const question = questions[currentQuestionIndex];
+            questionContainer.innerHTML = `
+                <div class="question-box">
+                    <p><strong>${question.id}. ${question.question}</strong></p>
+                    ${question.options
+                        .map(
+                            (option, i) => `
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="question${question.id}" id="q${question.id}o${i}" value="${option}">
+                            <label class="form-check-label" for="q${question.id}o${i}">${option}</label>
+                        </div>
+                    `
+                        )
+                        .join('')}
+                </div>`;
+            document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
+            document.getElementById('nextBtn').disabled = currentQuestionIndex === questions.length - 1;
+            updateTracker();
+        }
+
+        function goToQuestion(index) {
+            currentQuestionIndex = index;
+            renderQuestion();
+        }
+
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            }
+        });
+
+        // Timer functionality
+        let timeLeft = 60 * 60; // 60 minutes
+        const timerElement = document.getElementById('timer');
+
+        function updateTimer() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            if (timeLeft > 0) {
+                timeLeft--;
+                setTimeout(updateTimer, 1000);
+            } else {
+                alert('Time is up!');
+                document.getElementById('mockTestForm').submit();
+            }
+        }
+
+        updateTimer();
+        renderQuestion();
+    </script>
+</body>
+
+</html>
